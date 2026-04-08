@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Prospecting | LeadScanner Pro</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+    <aside class="sidebar">
+        <div class="logo">🎯 LeadScanner</div>
+        <a href="search.html" class="nav-item active"><span>🔍</span> Prospecting Engine</a>
+        <a href="#" class="nav-item" onclick="localStorage.clear(); window.location.href='index.html'"><span>🚪</span> Logout</a>
+    </aside>
+
+    <main class="main-content">
+        <header class="header">
+            <h1>Lead Database Explorer</h1>
+        </header>
+
+        <div class="search-bar-container">
+            <input type="text" id="search-keyword" class="search-input" placeholder="e.g. Plumbers, Dentists, Roofers..." value="Plumbers">
+            <input type="text" id="search-location" class="search-input" placeholder="Location or Zip Code" value="Austin, TX">
+            <button id="scan-btn" class="btn-primary">Search Database</button>
+        </div>
+
+        <div class="card">
+            <div class="table-row table-header">
+                <div>Business Name</div>
+                <div>Category</div>
+                <div>Website UX</div>
+                <div>Google Reviews</div>
+                <div>Opportunity Score</div>
+                <div>Action</div>
+            </div>
+
+            <div id="results-container">
+                <div style="padding: 20px; text-align: center; color: var(--text-muted);" id="placeholder-text">
+                    Enter a niche and location, then click Search to find businesses without websites.
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <script>
+        let currentPageToken = null;
+
+        function resetSearch() {
+            currentPageToken = null;
+            const btn = document.getElementById('scan-btn');
+            btn.innerText = "Search Database"; 
+            btn.disabled = false;
+        }
+
+        document.getElementById('search-keyword').addEventListener('input', resetSearch);
+        document.getElementById('search-location').addEventListener('input', resetSearch);
+
+        document.getElementById('scan-btn').addEventListener('click', async () => {
+            const keyword = document.getElementById('search-keyword').value;
+            const location = document.getElementById('search-location').value;
+            const btn = document.getElementById('scan-btn');
+            const container = document.getElementById('results-container');
+
+            btn.innerText = "Searching...";
+            btn.disabled = true;
+
+            if (!currentPageToken) {
+                container.innerHTML = "<div style='padding: 20px; text-align: center;' id='loading-text'>Querying secure database...</div>";
+            } else {
+                const loadingDiv = document.createElement('div');
+                loadingDiv.id = 'loading-text';
+                loadingDiv.style = "padding: 20px; text-align: center;";
+                loadingDiv.innerText = "Fetching next batch of leads...";
+                container.appendChild(loadingDiv);
+            }
+
+            try {
+                const userId = localStorage.getItem('userId'); 
+
+                if (!userId) {
+                    container.innerHTML = "<div style='padding: 20px; color: red;'>Authentication Error: Please log in.</div>";
+                    return;
+                }
+
+                const requestBody = { keyword, location, userId };
+                if (currentPageToken) {
+                    requestBody.pageToken = currentPageToken;
+                }
+
+                const response = await fetch('/api/scan', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(requestBody)
+                });
+
+                const data = await response.json();
+
+                if (response.status === 429) {
+                    const loadingText = document.getElementById('loading-text');
+                    if (loadingText) loadingText.remove();
+                    
+                    container.innerHTML = `
+                        <div style="padding: 20px; text-align: center; color: var(--danger); font-weight: bold; font-size: 18px;">
+                            🛑 ${data.message}
+                        </div>`;
+                    return; 
+                }
+
+                if (response.ok) {
+                    const loadingText = document.getElementById('loading-text');
+                    if (loadingText) loadingText.remove();
+
+                    if (!currentPageToken && data.results) {
+                        container.innerHTML = ""; 
+                    }
+
+                    if (!data.results || data.results.length === 0) {
+                        const noMatchDiv = document.createElement('div');
+                        noMatchDiv.style = "padding: 20px; text-align: center; color: var(--text-muted); font-style: italic;";
+                        noMatchDiv.innerText = "No viable leads in this specific batch (they all had websites). Click search again to check the next batch!";
+                        container.appendChild(noMatchDiv);
+                    } else {
+                        data.results.forEach(place => {
+                            const row = document.createElement('div');
+                            row.className = 'table-row';
+                            
+                            const name = place.displayName ? place.displayName.text : 'Unknown Business';
+                            const address = place.formattedAddress || 'No Address Provided';
+                            const category = place.primaryTypeDisplayName ? place.primaryTypeDisplayName.text : 'Business';
+                            const rating = place.rating || 'N/A';
+                            const reviewCount = place.userRatingCount || 0;
+                            const websiteUxText = place.websiteUri ? 'Third-Party Link' : 'No Website Exists';
+
+                            row.innerHTML = `
+                                <div>
+                                    <div style="font-weight: bold; color: var(--text-main); font-size: 14px;">${name}</div>
+                                    <div style="font-size: 11px; color: var(--text-muted);">${address}</div>
+                                </div>
+                                <div><span style="background: #f0f0f5; padding: 3px 8px; border-radius: 4px;">${category}</span></div>
+                                <div>
+                                    <span style="color: var(--danger); font-weight: bold; font-size: 16px;">0/10</span>
+                                    <div style="font-size: 10px;">${websiteUxText}</div>
+                                </div>
+                                <div>
+                                    <span style="color: var(--success); font-weight: bold; font-size: 16px;">${rating}</span>
+                                    <div style="font-size: 10px;">${reviewCount} Reviews</div>
+                                </div>
+                                <div><span style="background: #e8f5e9; color: #2e7d32; padding: 4px 10px; border-radius: 12px; font-weight: bold;">Grade: A+</span></div>
+                                <div>
+                                    <button class="btn-primary" style="padding: 5px 10px; font-size: 12px;" onclick="alert('Exporting data for ${name.replace(/'/g, "\\'")}...')">Export Lead</button>
+                                </div>
+                            `;
+                            container.appendChild(row);
+                        });
+                    }
+
+                    currentPageToken = data.nextPageToken || null;
+
+                } else {
+                    container.innerHTML = `<div style='padding: 20px; color: red;'>Error: ${data.message}</div>`;
+                }
+            } catch (error) {
+                console.error("Fetch error:", error);
+                container.innerHTML = "<div style='padding: 20px; color: red;'>Failed to connect to the server. Is your backend running?</div>";
+            } finally {
+                if (currentPageToken) {
+                    const btn = document.getElementById('scan-btn');
+                    btn.innerText = "Load Next 20 Results";
+                    btn.disabled = false;
+                } else {
+                    const btn = document.getElementById('scan-btn');
+                    btn.innerText = "End of Results";
+                    btn.disabled = true;
+                }
+            }
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Login - LeadScanner Pro</title>
+    <style>
+        body { font-family: 'Segoe UI', sans-serif; display: flex; flex-direction: column; align-items: center; margin-top: 80px; background-color: #f4f7f6; }
+        .form-container { background: white; padding: 30px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); width: 320px; }
+        input { display: block; margin: 12px 0; padding: 12px; width: 100%; box-sizing: border-box; border: 1px solid #ddd; border-radius: 6px; }
+        .btn-primary { width: 100%; padding: 12px; cursor: pointer; background: #2778cf; color: white; border: none; border-radius: 6px; font-weight: 600; margin-top: 10px; }
+        .btn-secondary { width: 100%; padding: 10px; cursor: pointer; background: transparent; color: #2778cf; border: 1px solid #2778cf; border-radius: 6px; margin-top: 10px; }
+        #responseMsg { text-align: center; font-size: 0.9em; margin-top: 15px; }
+        .legal-footer { margin-top: 25px; font-size: 0.8rem; color: #777; text-align: center; }
+        .legal-footer a { color: #2778cf; text-decoration: none; margin: 0 5px; }
+        .legal-footer a:hover { text-decoration: underline; }
+    </style>
+</head>
+<body>
+    <div class="form-container">
+        <h2 style="text-align: center; margin-top: 0;">Welcome</h2>
+        <input type="email" id="email" placeholder="Email Address">
+        <input type="password" id="password" placeholder="Password">
+        <button id="submitBtn" class="btn-primary">Login</button>
+        <button id="submitSignup" class="btn-secondary">Create an Account</button>
+        <p id="responseMsg"></p>
+        
+        <div class="legal-footer">
+            <a href="#">Terms of Service</a> | <a href="#">Privacy Policy</a>
+        </div>
+    </div>
+    <script>
+        document.getElementById('submitBtn').addEventListener('click', async () => {
+            const payload = { 
+                email: document.getElementById('email').value, 
+                password: document.getElementById('password').value 
+            };
+            
+            try {
+                const response = await fetch('/login', {
+                    method: 'POST', 
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+                
+                const data = await response.json();
+                
+                if (response.ok) {
+                    localStorage.setItem('userId', data.userId);
+                    localStorage.setItem('email', data.email);
+                    window.location.href = 'search.html'; // Updated to redirect straight to the app
+                } else {
+                    document.getElementById('responseMsg').innerText = data.message;
+                    document.getElementById('responseMsg').style.color = "red";
+                }
+            } catch (error) {
+                console.error("Login Error:", error);
+                document.getElementById('responseMsg').innerText = "Server error. Please try again.";
+                document.getElementById('responseMsg').style.color = "red";
+            }
+        });
+
+        document.getElementById('submitSignup').addEventListener('click', () => {
+            window.location.href = 'signup.html';
+        });
+    </script>
+</body>
+</html>

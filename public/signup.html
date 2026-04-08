@@ -1,0 +1,233 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sign Up - LeadScanner Pro</title>
+    <style>
+        :root {
+            --primary-color: #2778cf;
+            --primary-hover: #1b5b9e;
+            --error-color: #dc3545;
+            --text-color: #333;
+            --border-color: #ccc;
+            --bg-color: #f4f7f6;
+        }
+
+        body { 
+            font-family: 'Segoe UI', system-ui, -apple-system, sans-serif; 
+            display: flex; 
+            flex-direction: column; 
+            align-items: center; 
+            justify-content: center;
+            min-height: 100vh;
+            margin: 0; 
+            background-color: var(--bg-color); 
+            color: var(--text-color);
+        }
+
+        .form-container { 
+            background: white; 
+            padding: 40px; 
+            border-radius: 12px; 
+            box-shadow: 0 8px 24px rgba(0,0,0,0.08); 
+            width: 100%;
+            max-width: 380px; 
+            box-sizing: border-box;
+        }
+
+        h2 { margin-top: 0; margin-bottom: 24px; text-align: center; font-size: 1.5rem; }
+
+        .input-group { margin-bottom: 16px; display: flex; flex-direction: column; }
+
+        .label-error-wrapper { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 6px; }
+
+        label { font-size: 0.85rem; font-weight: 600; }
+
+        .error-message { color: var(--error-color); font-size: 0.75rem; font-weight: 500; opacity: 0; transition: opacity 0.2s ease; }
+        .error-message.visible { opacity: 1; }
+
+        input[type="text"], input[type="email"], input[type="password"] { 
+            padding: 12px; width: 100%; box-sizing: border-box; border: 1px solid var(--border-color); 
+            border-radius: 6px; font-size: 1rem; transition: border-color 0.2s, box-shadow 0.2s;
+        }
+
+        input:focus { outline: none; border-color: var(--primary-color); box-shadow: 0 0 0 3px rgba(39, 120, 207, 0.2); }
+        input.invalid { border-color: var(--error-color); }
+        input.invalid:focus { box-shadow: 0 0 0 3px rgba(220, 53, 69, 0.2); }
+
+        /* Custom Checkbox Styles */
+        .checkbox-group { display: flex; align-items: flex-start; margin-top: 10px; margin-bottom: 20px; position: relative; }
+        .checkbox-group input[type="checkbox"] { width: auto; margin-right: 10px; margin-top: 3px; cursor: pointer; }
+        .checkbox-group label { font-size: 0.8rem; font-weight: 400; color: #555; line-height: 1.4; }
+        .checkbox-group label a { color: var(--primary-color); text-decoration: none; }
+        .checkbox-group label a:hover { text-decoration: underline; }
+        .checkbox-group .error-message { position: absolute; bottom: -18px; left: 24px; }
+
+        .btn-primary { 
+            width: 100%; padding: 14px; margin-top: 5px; cursor: pointer; 
+            background: var(--primary-color); color: white; border: none; 
+            border-radius: 6px; font-weight: 600; font-size: 1rem; transition: background 0.2s;
+        }
+        .btn-primary:hover { background: var(--primary-hover); }
+        .btn-primary:disabled { background: #a0c4eb; cursor: not-allowed; }
+
+        #globalResponseMsg { text-align: center; font-size: 0.9em; margin-top: 15px; font-weight: 500; }
+        .global-error { color: var(--error-color); }
+        .global-success { color: #28a745; }
+
+        .back-link { display: block; text-align: center; margin-top: 20px; color: var(--primary-color); text-decoration: none; font-size: 0.9rem; font-weight: 500; }
+        .back-link:hover { text-decoration: underline; }
+    </style>
+</head>
+<body>
+    <div class="form-container">
+        <h2>Create Account</h2>
+        
+        <form id="signupForm" novalidate>
+            
+            <div class="input-group">
+                <div class="label-error-wrapper">
+                    <label for="firstname">First Name</label>
+                    <span class="error-message" id="err-firstname">Required</span>
+                </div>
+                <input type="text" id="firstname" name="firstname" autocomplete="given-name">
+            </div>
+
+            <div class="input-group">
+                <div class="label-error-wrapper">
+                    <label for="lastname">Last Name</label>
+                    <span class="error-message" id="err-lastname">Required</span>
+                </div>
+                <input type="text" id="lastname" name="lastname" autocomplete="family-name">
+            </div>
+
+            <div class="input-group">
+                <div class="label-error-wrapper">
+                    <label for="newEmail">Email Address</label>
+                    <span class="error-message" id="err-newEmail">Enter a valid email</span>
+                </div>
+                <input type="email" id="newEmail" name="email" autocomplete="email">
+            </div>
+
+            <div class="input-group">
+                <div class="label-error-wrapper">
+                    <label for="newPassword">Password</label>
+                    <span class="error-message" id="err-newPassword">Min 8 chars, 1 number</span>
+                </div>
+                <input type="password" id="newPassword" name="password" autocomplete="new-password">
+            </div>
+
+            <div class="input-group">
+                <div class="label-error-wrapper">
+                    <label for="confirmPassword">Confirm Password</label>
+                    <span class="error-message" id="err-confirmPassword">Passwords must match</span>
+                </div>
+                <input type="password" id="confirmPassword" name="confirmPassword" autocomplete="new-password">
+            </div>
+
+            <div class="checkbox-group">
+                <input type="checkbox" id="legalTerms" name="legalTerms">
+                <label for="legalTerms">I acknowledge that I have read and agree to the <a href="#">Terms of Service</a> and <a href="#">Privacy Policy</a>.</label>
+                <span class="error-message" id="err-legalTerms">You must agree to continue.</span>
+            </div>
+
+            <button type="submit" id="registerBtn" class="btn-primary">Register</button>
+        </form>
+
+        <div id="globalResponseMsg"></div>
+        
+        <a href="index.html" class="back-link">Back to Login</a>
+    </div>
+    
+    <script>
+        document.getElementById('signupForm').addEventListener('submit', async (e) => {
+            e.preventDefault(); 
+
+            document.querySelectorAll('.error-message').forEach(el => el.classList.remove('visible'));
+            document.querySelectorAll('input').forEach(el => el.classList.remove('invalid'));
+            const globalMsg = document.getElementById('globalResponseMsg');
+            globalMsg.textContent = "";
+            globalMsg.className = "";
+
+            const firstName = document.getElementById('firstname').value.trim();
+            const lastName = document.getElementById('lastname').value.trim();
+            const email = document.getElementById('newEmail').value.trim();
+            const pass = document.getElementById('newPassword').value;
+            const confirm = document.getElementById('confirmPassword').value;
+            const termsAgreed = document.getElementById('legalTerms').checked;
+
+            let isValid = true;
+
+            const showError = (inputId, message) => {
+                const errSpan = document.getElementById(`err-${inputId}`);
+                const inputEl = document.getElementById(inputId);
+                errSpan.textContent = message;
+                errSpan.classList.add('visible');
+                inputEl.classList.add('invalid');
+                isValid = false;
+            };
+
+            if (!firstName) showError('firstname', 'First name required');
+            if (!lastName) showError('lastname', 'Last name required');
+            
+            const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+            if (!email || !emailRegex.test(email)) {
+                showError('newEmail', 'Valid email required');
+            }
+
+            const passRegex = /^(?=.*\d).{8,}$/;
+            if (!passRegex.test(pass)) {
+                showError('newPassword', 'Min 8 chars & 1 number');
+            }
+
+            if (pass !== confirm) {
+                showError('confirmPassword', 'Passwords do not match');
+            }
+
+            // Validating the Checkbox
+            if (!termsAgreed) {
+                showError('legalTerms', 'You must agree to the terms to register.');
+            }
+
+            if (!isValid) return; 
+
+            const submitBtn = document.getElementById('registerBtn');
+            submitBtn.disabled = true;
+            submitBtn.textContent = 'Registering...';
+
+            try {
+                const response = await fetch('/register', {
+                    method: 'POST', 
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ 
+                        firstName: firstName,
+                        lastName: lastName,
+                        email: email, 
+                        password: pass 
+                    })
+                });
+                
+                if (response.ok) {
+                    globalMsg.textContent = "Account created successfully! Redirecting...";
+                    globalMsg.classList.add('global-success');
+                    setTimeout(() => {
+                        window.location.href = 'index.html';
+                    }, 1500);
+                } else {
+                    const data = await response.json();
+                    globalMsg.textContent = data.message || "Registration failed. Please try again.";
+                    globalMsg.classList.add('global-error');
+                    submitBtn.disabled = false;
+                    submitBtn.textContent = 'Register';
+                }
+            } catch (error) {
+                globalMsg.textContent = "A network error occurred. Please try again.";
+                globalMsg.classList.add('global-error');
+                submitBtn.disabled = false;
+                submitBtn.textContent = 'Register';
+            }
+        });
+    </script>
+</body>
+</html>
